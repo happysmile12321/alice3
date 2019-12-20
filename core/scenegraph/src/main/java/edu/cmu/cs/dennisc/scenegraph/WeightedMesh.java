@@ -43,6 +43,7 @@
 
 package edu.cmu.cs.dennisc.scenegraph;
 
+import edu.cmu.cs.dennisc.math.AffineMatrix4x4;
 import edu.cmu.cs.dennisc.math.Vector3;
 import edu.cmu.cs.dennisc.property.InstanceProperty;
 
@@ -100,6 +101,19 @@ public class WeightedMesh extends Mesh {
         }
         iatwp.setWeights(newWeights);
         iatwp.reset();
+      }
+    }
+  }
+
+  public void recalculateInverseAbsoluteTransforms( Joint skeleton ) {
+    for (Map.Entry<String, InverseAbsoluteTransformationWeightsPair> entry : weightInfo.getValue().getMap().entrySet()) {
+      InverseAbsoluteTransformationWeightsPair iatwp = entry.getValue();
+      if (iatwp != null) {
+        String jointId = entry.getKey();
+        Joint weightedJoint = skeleton.getJoint(jointId);
+        AffineMatrix4x4 jointTransform = weightedJoint.getAbsoluteTransformation();
+        jointTransform.invert();
+        iatwp.getInverseAbsoluteTransformation().set(jointTransform);
       }
     }
   }

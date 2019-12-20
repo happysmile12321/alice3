@@ -50,16 +50,19 @@ import edu.cmu.cs.dennisc.math.AffineMatrix4x4;
 import edu.cmu.cs.dennisc.math.UnitQuaternion;
 import edu.cmu.cs.dennisc.nebulous.Model;
 import edu.cmu.cs.dennisc.nebulous.NebulousJoint;
+import edu.cmu.cs.dennisc.nebulous.Person;
 import edu.cmu.cs.dennisc.nebulous.Thing;
+import edu.cmu.cs.dennisc.scenegraph.SkeletonVisual;
 import org.lgna.story.implementation.JointImp;
 import org.lgna.story.implementation.JointedModelImp;
-import org.lgna.story.implementation.alice.AliceResourceUtilties;
 import org.lgna.story.resources.JointArrayId;
 import org.lgna.story.resources.JointId;
 import org.lgna.story.resources.JointedModelResource;
 import org.lgna.story.resources.sims2.PersonResource;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Dennis Cosgrove
@@ -109,18 +112,29 @@ public class JointImplementationAndVisualDataFactory<R extends JointedModelResou
     return new JointId[0];
   }
 
+  private final static Set<JointedModelResource> existingModels = new HashSet<>();
+
   @Override
   public JointedModelImp.VisualData createVisualData() {
     try {
       if (this.resource instanceof PersonResource) {
         PersonResource personResource = (PersonResource) this.resource;
-        return NebulousPersonVisualData.createInstance(personResource);
+        NebulousVisualData<Person> person =  NebulousPersonVisualData.createInstance(personResource);
+//        if (!existingModels.contains(this.resource))
+        {
+          SkeletonVisual sv = person.getSgVisualForExporting(this.resource);
+          person.getSgVisuals()[0] = sv;
+//          existingModels.add(this.resource);
+        }
+        return person;
       } else {
-        String modelResourceName = AliceResourceUtilties.getVisualResourceName(this.resource);
-        modelResourceName = AliceResourceUtilties.camelCaseToEnum(modelResourceName);
-        String textureResourceName = AliceResourceUtilties.getTextureResourceName(this.resource);
-        //        return new NebulousVisualData< edu.cmu.cs.dennisc.nebulous.Model >( new edu.cmu.cs.dennisc.nebulous.Thing( this.resource, modelResourceName+"__"+textureResourceName ) );
-        return new NebulousVisualData<Model>(new Thing(this.resource, this.resource));
+        NebulousVisualData<Model> model = new NebulousVisualData<Model>(new Thing(this.resource, this.resource));
+        if (!existingModels.contains(this.resource)) {
+          SkeletonVisual sv = model.getSgVisualForExporting(this.resource);
+          model.getSgVisuals()[0] = sv;
+          existingModels.add(this.resource);
+        }
+        return model;
       }
     } catch (LicenseRejectedException lre) {
       throw new RuntimeException(lre);

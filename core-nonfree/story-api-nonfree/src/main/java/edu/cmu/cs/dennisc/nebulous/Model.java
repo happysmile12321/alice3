@@ -472,14 +472,11 @@ public abstract class Model extends Geometry {
       //Check to see if the weighted mesh is really a weighted to joints, and therefore actually a weighted mesh.
       // Some meshes are listed on the sims side as weighted meshes but are not weighted to any joints
       if (isActuallyWeightedToJoints(meshId, resourceJointIds)) {
+        WeightedMesh mesh = new WeightedMesh();
+        initializeMesh(meshId, mesh, resourceJointIds, textureNameToIdMap);
+        weightedMeshes.add(mesh);
         if (resource instanceof PersonResource) {
-          Mesh mesh = new Mesh();
-          initializeMesh(meshId, mesh, resourceJointIds, textureNameToIdMap);
-          unWeightedMeshes.add(mesh);
-        } else {
-          WeightedMesh mesh = new WeightedMesh();
-          initializeMesh(meshId, mesh, resourceJointIds, textureNameToIdMap);
-          weightedMeshes.add(mesh);
+          mesh.recalculateInverseAbsoluteTransforms(skeleton);
         }
       } else {
         //Add meshes that are weighted to no joints to the unweighted mesh list
@@ -491,6 +488,7 @@ public abstract class Model extends Geometry {
       initializeMesh(meshId, mesh, resourceJointIds, textureNameToIdMap);
       unWeightedMeshes.add(mesh);
     }
+
 
     SkeletonVisual skeletonVisual = new SkeletonVisual();
     skeletonVisual.setName(getName());
